@@ -62,9 +62,10 @@ def capture(table, field, pattern, newfields=None, include_original=False,
     The ``fill`` parameter can be used to provide a list or tuple of values to
     use if the regular expression does not match. The ``fill`` parameter
     should contain as many values as there are capturing groups in the regular
-    expression. If ``fill`` is ``None`` (default) then a
-    ``petl.transform.TransformError`` will be raised on the first non-matching
-    value.
+    expression. Any callable item in ``fill`` will be called with the row for 
+    argument and the return value will be used. If ``fill`` is ``None`` (default)
+    then a ``petl.transform.TransformError`` will be raised on the first 
+    non-matching value.
 
     """
 
@@ -128,6 +129,7 @@ def itercapture(source, field, pattern, newfields, include_original, flags,
         match = prog.search(value)
         if match is None:
             if fill is not None:
+                fill = [item(row) if callable(dict(zip(flds, item))) else item for item in fill]
                 out_row.extend(fill)
             else:
                 raise TransformError('value %r did not match pattern %r'
